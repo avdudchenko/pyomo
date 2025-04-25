@@ -82,27 +82,27 @@ def tostr(value, quote_str=False):
 
 tostr.handlers = {
     list: lambda value, quote_str: (
-        "[%s]" % (', '.join(tostr(v, True) for v in value))
+        "[%s]" % (", ".join(tostr(v, True) for v in value))
     ),
     dict: lambda value, quote_str: (
         "{%s}"
         % (
-            ', '.join(
-                '%s: %s' % (tostr(k, True), tostr(v, True)) for k, v in value.items()
+            ", ".join(
+                "%s: %s" % (tostr(k, True), tostr(v, True)) for k, v in value.items()
             )
         )
     ),
     tuple: lambda value, quote_str: (
         "(%s,)" % (tostr(value[0], True),)
         if len(value) == 1
-        else "(%s)" % (', '.join(tostr(v, True) for v in value))
+        else "(%s)" % (", ".join(tostr(v, True) for v in value))
     ),
     str: lambda value, quote_str: (repr(value) if quote_str else value),
     None: lambda value, quote_str: str(value),
 }
 
 
-def tabular_writer(ostream, prefix, data, header, row_generator):
+def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True):
     """Output data in tabular form
 
     Parameters
@@ -121,6 +121,8 @@ def tabular_writer(ostream, prefix, data, header, row_generator):
         returns either a tuple defining the entries for a single row, or
         a generator that returns a sequence of table rows to be output
         for the specified `key`
+    sort_rows: bool
+        if True will sort rows using robust sort, otherwise uses original data order
 
     """
 
@@ -129,7 +131,7 @@ def tabular_writer(ostream, prefix, data, header, row_generator):
     _rows = {}
     # NB: _width is a list because we will change these values
     if header:
-        header = (u"Key",) + tuple(tostr(x) for x in header)
+        header = ("Key",) + tuple(tostr(x) for x in header)
         _width = [len(x) for x in header]
     else:
         _width = None
@@ -184,9 +186,11 @@ def tabular_writer(ostream, prefix, data, header, row_generator):
     # in the data (probably an expression or vector)
     _width = ["%" + str(i) + "s" for i in _width]
 
-    if any(' ' in r[-1] for x in _rows.values() if x is not None for r in x):
-        _width[-1] = '%s'
-    for _key in sorted_robust(_rows):
+    if any(" " in r[-1] for x in _rows.values() if x is not None for r in x):
+        _width[-1] = "%s"
+    if sort_rows:
+        _rows = sorted_robust(_rows)
+    for _key in _rows:
         _rowSet = _rows[_key]
         if not _rowSet:
             _rowSet = [[_key] + [None] * (len(_width) - 1)]
@@ -204,7 +208,7 @@ class StreamIndenter(object):
     StreamIndenter objects may be arbitrarily nested.
     """
 
-    def __init__(self, ostream, indent=' ' * 4):
+    def __init__(self, ostream, indent=" " * 4):
         self.os = ostream
         self.indent = indent
         self.stripped_indent = indent.rstrip()
@@ -216,7 +220,7 @@ class StreamIndenter(object):
     def write(self, data):
         if not len(data):
             return
-        lines = data.split('\n')
+        lines = data.split("\n")
         if self.newline:
             if lines[0]:
                 self.os.write(self.indent + lines[0])
@@ -244,26 +248,26 @@ class StreamIndenter(object):
             self.write(x)
 
 
-_indentation_re = re.compile(r'\s*')
+_indentation_re = re.compile(r"\s*")
 _bullet_re = re.compile(
-    r'([-+*] +)'  # bulleted lists
-    r'|(\(?[0-9]+[\)\.] +)'  # enumerated lists (arabic numerals)
-    r'|(\(?[ivxlcdm]+[\)\.] +)'  # enumerated lists (roman numerals)
-    r'|(\(?[IVXLCDM]+[\)\.] +)'  # enumerated lists (roman numerals)
-    r'|(\(?[a-zA-Z][\)\.] +)'  # enumerated lists (letters)
-    r'|(\(?\#[\)\.] +)'  # auto enumerated lists
-    r'|([a-zA-Z0-9_ ]+ +: +)'  # definitions
-    r'|(:[a-zA-Z0-9_ ]+: +)'  # field name
-    r'|(?:\[\s*[A-Za-z0-9\.]+\s*\] +)'  # [PASS]|[FAIL]|[ OK ]
+    r"([-+*] +)"  # bulleted lists
+    r"|(\(?[0-9]+[\)\.] +)"  # enumerated lists (arabic numerals)
+    r"|(\(?[ivxlcdm]+[\)\.] +)"  # enumerated lists (roman numerals)
+    r"|(\(?[IVXLCDM]+[\)\.] +)"  # enumerated lists (roman numerals)
+    r"|(\(?[a-zA-Z][\)\.] +)"  # enumerated lists (letters)
+    r"|(\(?\#[\)\.] +)"  # auto enumerated lists
+    r"|([a-zA-Z0-9_ ]+ +: +)"  # definitions
+    r"|(:[a-zA-Z0-9_ ]+: +)"  # field name
+    r"|(?:\[\s*[A-Za-z0-9\.]+\s*\] +)"  # [PASS]|[FAIL]|[ OK ]
 )
 _verbatim_line_start = re.compile(
-    r'(\| )'  # line blocks
-    r'|(\+((-{3,})|(={3,}))\+)'  # grid table
+    r"(\| )"  # line blocks
+    r"|(\+((-{3,})|(={3,}))\+)"  # grid table
 )
 _verbatim_line = re.compile(
-    r'(={3,}[ =]+)'  # simple tables, ======== sections
+    r"(={3,}[ =]+)"  # simple tables, ======== sections
     # sections
-    + ''.join(r'|(\%s{3,})' % c for c in r'!"#$%&\'()*+,-./:;<>?@[\\]^_`{|}~')
+    + "".join(r"|(\%s{3,})" % c for c in r'!"#$%&\'()*+,-./:;<>?@[\\]^_`{|}~')
 )
 
 
@@ -300,7 +304,7 @@ def wrap_reStructuredText(docstr, wrapper):
             if literal_block:
                 if literal_block[0] == 2:
                     literal_block = False
-            elif paragraphs[-1][2] and ''.join(paragraphs[-1][2]).endswith('::'):
+            elif paragraphs[-1][2] and "".join(paragraphs[-1][2]).endswith("::"):
                 literal_block = (0, paragraphs[-1][1])
             paragraphs.append((None, None, None))
             continue
@@ -313,7 +317,7 @@ def wrap_reStructuredText(docstr, wrapper):
                     continue
                 elif (
                     len(literal_block[1]) == len(leading)
-                    and content[0] in '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+                    and content[0] in "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
                 ):
                     # quoted literal block
                     literal_block = 2, leading
@@ -328,7 +332,7 @@ def wrap_reStructuredText(docstr, wrapper):
             else:
                 # fall back on normal line processing
                 literal_block = False
-        if content == '```':
+        if content == "```":
             # Not part of ReST, but we have supported this in Pyomo for a long time
             verbatim ^= True
         elif verbatim:
@@ -348,7 +352,7 @@ def wrap_reStructuredText(docstr, wrapper):
             if matchBullet:
                 # Handle things that look like bullet lists specially
                 hang = matchBullet.group()
-                paragraphs.append((leading, leading + ' ' * len(hang), [content]))
+                paragraphs.append((leading, leading + " " * len(hang), [content]))
             elif paragraphs[-1][1] == leading:
                 # Continuing a text block
                 paragraphs[-1][2].append(content)
@@ -366,16 +370,16 @@ def wrap_reStructuredText(docstr, wrapper):
 
             if indent is None:
                 if par is None:
-                    paragraphs[i] = ''
+                    paragraphs[i] = ""
                 else:
                     paragraphs[i] = base_indent + par
                 continue
 
             wrapper.initial_indent = base_indent + indent
             wrapper.subsequent_indent = base_indent + subseq
-            paragraphs[i] = wrapper.fill(' '.join(par))
+            paragraphs[i] = wrapper.fill(" ".join(par))
     finally:
         # Avoid side-effects and restore the initial wrapper state
         wrapper.initial_indent, wrapper.subsequent_indent = wrapper_init
 
-    return '\n'.join(paragraphs)
+    return "\n".join(paragraphs)

@@ -46,5 +46,5 @@ def maximize_cb_outputs(show_solver_log=False):
 
 
 if __name__ == '__main__':
-    m = maximize_cb_outputs(show_solver_log=False)
+    m = maximize_cb_outputs(show_solver_log=True)
     m.pprint()

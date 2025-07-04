@@ -21,7 +21,7 @@ this is included as an example of the external grey
 box model interface.
 """
 
-
+import time
 import numpy as np
 from scipy.optimize import fsolve
 from scipy.sparse import coo_matrix
@@ -85,6 +85,8 @@ class ReactorConcentrationsOutputModel(ExternalGreyBoxModel):
         k2 = self._input_values[3]
         k3 = self._input_values[4]
         ret = reactor_outlet_concentrations(sv, caf, k1, k2, k3)
+        random=np.random.rand(ret.shape[0] )
+        ret+= random
         return np.asarray(ret, dtype=np.float64)
 
     def evaluate_jacobian_outputs(self):
@@ -101,7 +103,8 @@ class ReactorConcentrationsOutputModel(ExternalGreyBoxModel):
             self.set_input_values(u)
             yperturb = self.evaluate_outputs()
             jac_col = (yperturb - y0) / delta
-            jac[:, j] = jac_col
+            random = np.random.rand(1)
+            jac[:, j] = jac_col+random[0]
             u[j] = u0[j]
 
         # return us back to our starting state
@@ -117,7 +120,8 @@ class ReactorConcentrationsOutputModel(ExternalGreyBoxModel):
                 row.append(r)
                 col.append(c)
                 data.append(jac[r, c])
-
+        # time.sleep(0.1) # imitat internal solver delay
+        #print("Jacobian matrix shape:",(data, (row, col)))
         return coo_matrix((data, (row, col)), shape=(4, 5))
 
 

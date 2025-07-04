@@ -1,7 +1,7 @@
 #  ___________________________________________________________________________
 #
 #  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2024
+#  Copyright (c) 2008-2025
 #  National Technology and Engineering Solutions of Sandia, LLC
 #  Under the terms of Contract DE-NA0003525 with National Technology and
 #  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
@@ -39,6 +39,7 @@ def maximize_cb_outputs(show_solver_log=False):
 
     solver = pyo.SolverFactory('cyipopt')
     solver.config.options['hessian_approximation'] = 'limited-memory'
+    solver.config.options["max_iter"] = 1000
     results = solver.solve(m, tee=show_solver_log)
     pyo.assert_optimal_termination(results)
     return m

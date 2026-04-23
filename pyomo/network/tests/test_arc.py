@@ -2026,7 +2026,7 @@ class TestArc(unittest.TestCase):
         m.prt = Port()
         m.prt.add(m.x, "a")
         m.prt.connect_to(m.prt)
-        created_arc=m.find_component("prt_to_prt")
+        created_arc = m.find_component("prt_to_prt")
         self.assertEqual(len(list(m.component_objects(Constraint))), 0)
         self.assertEqual(len(list(m.component_data_objects(Constraint))), 0)
 
@@ -2052,6 +2052,7 @@ class TestArc(unittest.TestCase):
     1 Declarations: a_equality
 """,
         )
+
 
 if __name__ == "__main__":
     unittest.main()

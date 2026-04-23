@@ -553,7 +553,6 @@ class TestPort(unittest.TestCase):
 """,
         )
 
-
     def test_auto_connect(self):
         m = ConcreteModel()
         m.x = Var()
@@ -563,16 +562,17 @@ class TestPort(unittest.TestCase):
         m.p2 = Port()
         m.p2.add(m.y)
         m.p1.connect_to(m.p2)
-        
+
         self.assertIs(m.p1.x, m.x)
         self.assertIs(m.p2.y, m.y)
         assert m.find_component('p1_to_p2') is not None
-        assert m.p1.get_created_arcs() is m.find_component('p1_to_p2')
-        assert m.p2.get_created_arcs() is None
+        assert m.p1.get_connections() is m.find_component('p1_to_p2')
+        assert m.p2.get_connections() is None
+
     def test_auto_connect_with_block(self):
         m = ConcreteModel()
-        m.block_a=Block()
-        m.block_b=Block()
+        m.block_a = Block()
+        m.block_b = Block()
         m.block_a.x = Var()
         m.block_b.y = Var()
         m.block_a.p1 = Port()
@@ -580,15 +580,18 @@ class TestPort(unittest.TestCase):
         m.block_b.p2 = Port()
         m.block_b.p2.add(m.block_b.y)
         m.block_a.p1.connect_to(m.block_b.p2)
-        
+
         self.assertIs(m.block_a.p1.x, m.block_a.x)
         self.assertIs(m.block_b.p2.y, m.block_b.y)
         assert m.block_a.find_component('block_a_p1_to_block_b_p2') is not None
-        assert m.block_a.p1.get_created_arcs() is m.block_a.find_component('block_a_p1_to_block_b_p2')        
-        assert m.block_b.p2.get_created_arcs() is None
+        assert m.block_a.p1.get_connections() is m.block_a.find_component(
+            'block_a_p1_to_block_b_p2'
+        )
+        assert m.block_b.p2.get_connections() is None
+
     def test_auto_connect_with_indexed_block(self):
         m = ConcreteModel()
-        m.block=Block([1,2])
+        m.block = Block([1, 2])
         m.block[1].x = Var()
         m.block[2].y = Var()
         m.block[1].p1 = Port()
@@ -596,13 +599,16 @@ class TestPort(unittest.TestCase):
         m.block[2].p2 = Port()
         m.block[2].p2.add(m.block[2].y)
         m.block[1].p1.connect_to(m.block[2].p2)
-        
+
         self.assertIs(m.block[1].p1.x, m.block[1].x)
         self.assertIs(m.block[2].p2.y, m.block[2].y)
         assert m.block[1].find_component('block_1_p1_to_block_2_p2') is not None
-        
-        assert m.block[1].p1.get_created_arcs() is m.block[1].find_component('block_1_p1_to_block_2_p2')        
-        assert m.block[2].p2.get_created_arcs() is None
+
+        assert m.block[1].p1.get_connections() is m.block[1].find_component(
+            'block_1_p1_to_block_2_p2'
+        )
+        assert m.block[2].p2.get_connections() is None
+
 
 if __name__ == "__main__":
     unittest.main()

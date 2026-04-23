@@ -416,9 +416,16 @@ class Port(IndexedComponent):
         self._auto_created_arcs.append(created_arc)
 
     def get_created_arcs(self):
-        """Returns a list of Arcs that were automatically created by the `connect_to` method,
-        this list can be used for simple propagation or management of automatically created arcs"""
-        return self._auto_created_arcs
+        """Returns a singel or list of Arcs that were automatically created by the `connect_to` method,
+        this list can be used for simple propagation or management of automatically created arcs, 
+        if no Arc is created None is returned."""
+        if len(self._auto_created_arcs) == 0:
+            logger.warning(f"No automatically created arcs found for Port '{self.name}'.")
+            return None
+        elif len(self._auto_created_arcs) == 1:
+            return self._auto_created_arcs[0]
+        else:
+            return self._auto_created_arcs
     
     def _initialize_members(self, initSet):
         for idx in initSet:

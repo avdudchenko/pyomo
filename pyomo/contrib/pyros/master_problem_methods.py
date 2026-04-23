@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 """
 Functions for construction and solution of the PyROS master problem.
@@ -296,7 +294,7 @@ def solve_master_feasibility_problem(master_data):
             f" Solve time: {getattr(results.solver, TIC_TOC_SOLVE_TIME_ATTR)}s"
         )
     else:
-        config.progress_logger.warning(
+        config.progress_logger.debug(
             "Could not successfully solve master feasibility problem "
             f"of iteration {master_data.iteration} with primary subordinate "
             f"{'global' if config.solve_master_globally else 'local'} solver "
@@ -537,18 +535,12 @@ def minimize_dr_vars(master_data):
     # interested in the time and termination status for debugging
     # purposes
     config.progress_logger.debug(" Done solving DR polishing problem")
-    config.progress_logger.debug(
-        f"  Termination condition: {results.solver.termination_condition} "
-    )
-    config.progress_logger.debug(
-        f"  Solve time: {getattr(results.solver, TIC_TOC_SOLVE_TIME_ATTR)} s"
-    )
 
     # === Process solution by termination condition
     acceptable = {tc.globallyOptimal, tc.optimal, tc.locallyOptimal}
     if results.solver.termination_condition not in acceptable:
         # continue with "unpolished" master model solution
-        config.progress_logger.warning(
+        config.progress_logger.debug(
             "Could not successfully solve DR polishing problem "
             f"of iteration {master_data.iteration} with primary subordinate "
             f"{'global' if config.solve_master_globally else 'local'} solver "
@@ -787,7 +779,7 @@ def solver_call_master(master_data):
 
     for idx, opt in enumerate(solvers):
         if idx > 0:
-            config.progress_logger.warning(
+            config.progress_logger.debug(
                 f"Invoking backup solver {opt!r} "
                 f"(solver {idx + 1} of {len(solvers)}) for "
                 f"master problem of iteration {master_data.iteration}."

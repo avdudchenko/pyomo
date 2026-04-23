@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import logging
 import os
@@ -81,7 +79,7 @@ ScalingFactors = namedtuple(
 
 
 # TODO: make a proper base class
-class NLWriterInfo(object):
+class NLWriterInfo:
     """Return type for NLWriter.write()
 
     Attributes
@@ -138,28 +136,28 @@ class NLWriterInfo(object):
 
     def __init__(
         self,
-        var,
-        con,
-        obj,
-        external_libs,
-        row_labels,
-        col_labels,
-        eliminated_vars,
-        scaling,
+        var=None,
+        con=None,
+        obj=None,
+        external_libs=None,
+        row_labels=None,
+        col_labels=None,
+        eliminated_vars=None,
+        scaling=None,
     ):
-        self.variables = var
-        self.constraints = con
-        self.objectives = obj
-        self.external_function_libraries = external_libs
-        self.row_labels = row_labels
-        self.column_labels = col_labels
-        self.eliminated_vars = eliminated_vars
+        self.variables = var or []
+        self.constraints = con or []
+        self.objectives = obj or []
+        self.external_function_libraries = external_libs or []
+        self.row_labels = row_labels or []
+        self.column_labels = col_labels or []
+        self.eliminated_vars = eliminated_vars or []
         self.scaling = scaling
 
 
 @WriterFactory.register('nl_v2', 'Generate the corresponding AMPL NL file (version 2).')
 @document_class_CONFIG(methods=['write'])
-class NLWriter(object):
+class NLWriter:
     #: Global class configuration;
     #: see :ref:`pyomo.repn.plugins.nl_writer.NLWriter::CONFIG`.
     CONFIG = ConfigDict('nlwriter')
@@ -388,7 +386,7 @@ class NLWriter(object):
         return symbol_map
 
 
-class _SuffixData(object):
+class _SuffixData:
     def __init__(self, name):
         self.name = name
         self.obj = {}
@@ -491,14 +489,14 @@ class CachingNumericSuffixFinder(SuffixFinder):
         return ans
 
 
-class _NoScalingFactor(object):
+class _NoScalingFactor:
     scale = False
 
     def __call__(self, obj):
         return 1
 
 
-class _NLWriter_impl(object):
+class _NLWriter_impl:
     def __init__(self, ostream, rowstream, colstream, config):
         self.ostream = ostream
         self.rowstream = rowstream

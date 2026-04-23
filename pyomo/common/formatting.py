@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 """This module provides general utilities for producing formatted I/O
 
 .. autosummary::
@@ -18,8 +16,12 @@
    StreamIndenter
 """
 
+import io
 import re
 import types
+
+from typing import Iterable
+
 from pyomo.common.sorting import sorted_robust
 
 
@@ -82,27 +84,27 @@ def tostr(value, quote_str=False):
 
 tostr.handlers = {
     list: lambda value, quote_str: (
-        "[%s]" % (", ".join(tostr(v, True) for v in value))
+        "[%s]" % (', '.join(tostr(v, True) for v in value))
     ),
     dict: lambda value, quote_str: (
         "{%s}"
         % (
-            ", ".join(
-                "%s: %s" % (tostr(k, True), tostr(v, True)) for k, v in value.items()
+            ', '.join(
+                '%s: %s' % (tostr(k, True), tostr(v, True)) for k, v in value.items()
             )
         )
     ),
     tuple: lambda value, quote_str: (
         "(%s,)" % (tostr(value[0], True),)
         if len(value) == 1
-        else "(%s)" % (", ".join(tostr(v, True) for v in value))
+        else "(%s)" % (', '.join(tostr(v, True) for v in value))
     ),
     str: lambda value, quote_str: (repr(value) if quote_str else value),
     None: lambda value, quote_str: str(value),
 }
 
 
-def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True):
+def tabular_writer(ostream, prefix, data, header, row_generator):
     """Output data in tabular form
 
     Parameters
@@ -121,8 +123,6 @@ def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True)
         returns either a tuple defining the entries for a single row, or
         a generator that returns a sequence of table rows to be output
         for the specified `key`
-    sort_rows: bool
-        if True will sort rows using robust sort, otherwise uses original data order
 
     """
 
@@ -131,7 +131,7 @@ def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True)
     _rows = {}
     # NB: _width is a list because we will change these values
     if header:
-        header = ("Key",) + tuple(tostr(x) for x in header)
+        header = (u"Key",) + tuple(tostr(x) for x in header)
         _width = [len(x) for x in header]
     else:
         _width = None
@@ -152,8 +152,11 @@ def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True)
             _rows[_key] = None
             continue
 
+        # Include the key for only the first line in a rowset, and only
+        # if we printed out a header (if there is no header, then the
+        # key is not included)
         _rows[_key] = [
-            ((tostr("" if i else _key),) if header else ())
+            (("" if i else tostr(_key),) if header else ())
             + tuple(tostr(x) for x in _r)
             for i, _r in enumerate(_rowSet)
         ]
@@ -186,13 +189,9 @@ def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True)
     # in the data (probably an expression or vector)
     _width = ["%" + str(i) + "s" for i in _width]
 
-    if any(" " in r[-1] for x in _rows.values() if x is not None for r in x):
-        _width[-1] = "%s"
-    if sort_rows:
-        _sorted_rows = sorted_robust(_rows)
-    else:
-        _sorted_rows = _rows
-    for _key in _sorted_rows:
+    if any(' ' in r[-1] for x in _rows.values() if x is not None for r in x):
+        _width[-1] = '%s'
+    for _key in _rows:
         _rowSet = _rows[_key]
         if not _rowSet:
             _rowSet = [[_key] + [None] * (len(_width) - 1)]
@@ -202,7 +201,7 @@ def tabular_writer(ostream, prefix, data, header, row_generator, sort_rows=True)
             )
 
 
-class StreamIndenter(object):
+class StreamIndenter:
     """
     Mock-up of a file-like object that wraps another file-like object
     and indents all data using the specified string before passing it to
@@ -210,66 +209,83 @@ class StreamIndenter(object):
     StreamIndenter objects may be arbitrarily nested.
     """
 
-    def __init__(self, ostream, indent=" " * 4):
-        self.os = ostream
-        self.indent = indent
-        self.stripped_indent = indent.rstrip()
-        self.newline = True
+    _newline_re = re.compile('\n([^\n])')
+    _blankline_re = re.compile('\n\n')
 
-    def __getattr__(self, name):
-        return getattr(self.os, name)
+    def __init__(self, ostream: io.TextIOBase, indent: str = ' ' * 4):
+        super().__setattr__('wrapped_os', ostream)
+        # The following is a "cute" trick: because of the __getattr__ /
+        # __setattr__ overloads, nested StreamIndenter instances all
+        # print directly to the underlying stream object, and all share
+        # a common `newline` flag.
+        if isinstance(ostream, StreamIndenter):
+            super().__setattr__('target_os', ostream.target_os)
+            indent = ostream.indent + indent
+        else:
+            super().__setattr__('target_os', ostream)
+            # We will assume the last thing written to the stream we
+            # are wrapping ended with a newline
+            super().__setattr__('newline', True)
+        super().__setattr__('indent', indent)
+        super().__setattr__('indent_match', f'\n{indent}\\1')
+        super().__setattr__('stripped_indent', indent.rstrip())
+        if self.stripped_indent:
+            super().__setattr__('blankline_match', f'\n{self.stripped_indent}\n')
 
-    def write(self, data):
-        if not len(data):
-            return
-        lines = data.split("\n")
+    def __getattr__(self, name: str):
+        return getattr(self.wrapped_os, name)
+
+    def __setattr__(self, name: str, val):
+        if name in self.__dict__:
+            super().__setattr__(name, val)
+        else:
+            self.wrapped_os.__setattr__(name, val)
+
+    def write(self, data: str) -> int:
+        if not data:
+            return 0
+        written = 0
         if self.newline:
-            if lines[0]:
-                self.os.write(self.indent + lines[0])
-            else:
-                self.os.write(self.stripped_indent)
-        else:
-            self.os.write(lines[0])
-        if len(lines) < 2:
-            self.newline = False
-            return
-        for line in lines[1:-1]:
-            if line:
-                self.os.write("\n" + self.indent + line)
-            else:
-                self.os.write("\n" + self.stripped_indent)
-        if lines[-1]:
-            self.os.write("\n" + self.indent + lines[-1])
-            self.newline = False
-        else:
-            self.os.write("\n")
-            self.newline = True
+            if data[0] != '\n':
+                written += self.target_os.write(self.indent)
+            elif self.stripped_indent:
+                written += self.target_os.write(self.stripped_indent)
+        data = self._newline_re.sub(self.indent_match, data)
+        if self.stripped_indent:
+            data, n = self._blankline_re.subn(self.blankline_match, data)
+            # If we replaced any blank lines, then we need to check
+            # again to catch cases like "\n\n\n"
+            if n:
+                data = self._blankline_re.sub(self.blankline_match, data)
+        written += self.target_os.write(data)
+        self.newline = data.endswith('\n')
+        return written
 
-    def writelines(self, sequence):
+    def writelines(self, sequence: Iterable[str]) -> None:
         for x in sequence:
             self.write(x)
 
 
-_indentation_re = re.compile(r"\s*")
+_indentation_re = re.compile(r'\s*')
 _bullet_re = re.compile(
-    r"([-+*] +)"  # bulleted lists
-    r"|(\(?[0-9]+[\)\.] +)"  # enumerated lists (arabic numerals)
-    r"|(\(?[ivxlcdm]+[\)\.] +)"  # enumerated lists (roman numerals)
-    r"|(\(?[IVXLCDM]+[\)\.] +)"  # enumerated lists (roman numerals)
-    r"|(\(?[a-zA-Z][\)\.] +)"  # enumerated lists (letters)
-    r"|(\(?\#[\)\.] +)"  # auto enumerated lists
-    r"|([a-zA-Z0-9_ ]+ +: +)"  # definitions
-    r"|(:[a-zA-Z0-9_ ]+: +)"  # field name
-    r"|(?:\[\s*[A-Za-z0-9\.]+\s*\] +)"  # [PASS]|[FAIL]|[ OK ]
+    r'([-+*] +)'  # bulleted lists
+    r'|(\(?[0-9]+[\)\.] +)'  # enumerated lists (arabic numerals)
+    r'|(\(?[ivxlcdm]+[\)\.] +)'  # enumerated lists (roman numerals)
+    r'|(\(?[IVXLCDM]+[\)\.] +)'  # enumerated lists (roman numerals)
+    r'|(\(?[a-zA-Z][\)\.] +)'  # enumerated lists (letters)
+    r'|(\(?\#[\)\.] +)'  # auto enumerated lists
+    r'|([a-zA-Z0-9_ ]+ +: +)'  # definitions
+    r'|(:[a-zA-Z0-9_ ]+: +)'  # field name
+    r'|(?:\[\s*[A-Za-z0-9\.]+\s*\] +)'  # [PASS]|[FAIL]|[ OK ]
 )
 _verbatim_line_start = re.compile(
-    r"(\| )"  # line blocks
-    r"|(\+((-{3,})|(={3,}))\+)"  # grid table
+    r'(\| )'  # line blocks
+    r'|(\+((-{3,})|(={3,}))\+)'  # grid table
 )
 _verbatim_line = re.compile(
-    r"(={3,}[ =]+)"  # simple tables, ======== sections
+    r'(={3,}[ =]+)'  # simple tables, ======== sections
     # sections
-    + "".join(r"|(\%s{3,})" % c for c in r'!"#$%&\'()*+,-./:;<>?@[\\]^_`{|}~')
+    + ''.join(r'|(\%s{3,})' % c for c in r'!"#$%&\'()*+,-./:;<>?@[\\]^_`{|}~')
 )
 
 
@@ -306,7 +322,7 @@ def wrap_reStructuredText(docstr, wrapper):
             if literal_block:
                 if literal_block[0] == 2:
                     literal_block = False
-            elif paragraphs[-1][2] and "".join(paragraphs[-1][2]).endswith("::"):
+            elif paragraphs[-1][2] and ''.join(paragraphs[-1][2]).endswith('::'):
                 literal_block = (0, paragraphs[-1][1])
             paragraphs.append((None, None, None))
             continue
@@ -319,7 +335,7 @@ def wrap_reStructuredText(docstr, wrapper):
                     continue
                 elif (
                     len(literal_block[1]) == len(leading)
-                    and content[0] in "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+                    and content[0] in '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
                 ):
                     # quoted literal block
                     literal_block = 2, leading
@@ -334,7 +350,7 @@ def wrap_reStructuredText(docstr, wrapper):
             else:
                 # fall back on normal line processing
                 literal_block = False
-        if content == "```":
+        if content == '```':
             # Not part of ReST, but we have supported this in Pyomo for a long time
             verbatim ^= True
         elif verbatim:
@@ -354,7 +370,7 @@ def wrap_reStructuredText(docstr, wrapper):
             if matchBullet:
                 # Handle things that look like bullet lists specially
                 hang = matchBullet.group()
-                paragraphs.append((leading, leading + " " * len(hang), [content]))
+                paragraphs.append((leading, leading + ' ' * len(hang), [content]))
             elif paragraphs[-1][1] == leading:
                 # Continuing a text block
                 paragraphs[-1][2].append(content)
@@ -372,16 +388,16 @@ def wrap_reStructuredText(docstr, wrapper):
 
             if indent is None:
                 if par is None:
-                    paragraphs[i] = ""
+                    paragraphs[i] = ''
                 else:
                     paragraphs[i] = base_indent + par
                 continue
 
             wrapper.initial_indent = base_indent + indent
             wrapper.subsequent_indent = base_indent + subseq
-            paragraphs[i] = wrapper.fill(" ".join(par))
+            paragraphs[i] = wrapper.fill(' '.join(par))
     finally:
         # Avoid side-effects and restore the initial wrapper state
         wrapper.initial_indent, wrapper.subsequent_indent = wrapper_init
 
-    return "\n".join(paragraphs)
+    return '\n'.join(paragraphs)

@@ -2,6 +2,129 @@ Pyomo CHANGELOG
 ===============
 
 -------------------------------------------------------------------------------
+Pyomo 6.10.0   (20 Feb 2026)
+-------------------------------------------------------------------------------
+
+- General
+  - Remove support for Python 3.9 (#3760)
+  - Typo corrections (#3779, #3831)
+  - Remove external `ply` dependency (#3840)
+  - Apply 2026 `black` formatting updates (#3820)
+  - Update copyright to 2026 (#3846)
+  - Improvements to `Config` classes, tests, and docs (#3790)
+  - Improve efficiency of nested `StreamIndenter` objects (#3813)
+- Core
+  - Remove sorting from `tabular_writer` (#3804)
+  - Enhance static typing (#3803)
+  - Update `SuffixFinder` to look in context for external data objects (#3844)
+- Documentation
+  - Add support for Sphinx 9.1 (#3815, #3818)
+  - Add formal documentation for future `pyomo.contrib` changes (#3768)
+  - Fix docstrings in `core.lp_dual` transformation (#3842)
+  - Update related packages page (#3849, #3853)
+- GDP
+  - Fix bug transforming Blocks in `gdp.mbigm` transformation (#3811)
+- Solver Interfaces
+  - Update `ipopt_v2` interface (#3792)
+  - Add cuOpt direct solver (#3620)
+  - Improvements for KNITRO interface (#3762, #3765, #3766, #3802, #3824,
+    #3826, #3827, #3837, #3794)
+  - Remove `iteration_count` as a default Results object value (#3767)
+  - Compute `wall_time` using `time.perf_counter` (#3825)
+  - Incorporate Model observer into `gurobi_v2` interface (#3698)
+  - Add new GAMS interface, writer, and solution loader (#3683)
+- Testing
+  - Testing infrastructure cleanup/rework (#3764, #3770, #3773, #3810)
+  - Correct broken URLs (#3761, #3796, #3845, #3847, #3848)
+  - Pytest version workarounds (#3780, #3784)
+  - Specify `openmpi` build type in testing environment (#3797)
+  - Add flexibility to error checking for `gurobi_minlp` (#3822)
+  - Update solver tests for gurobiasl 13.0.0 (#3850)
+  - Rework `conftest.py` to support solver/writer marker expressions (#3854)
+  - Relax mumps reallocation test (#3857)
+- Contributed Packages
+  - DoE: Disable unreliable test (#3776)
+  - DoE: Correct A optimality (#3803)
+  - DoE: Replace computationally expensive example with Rooney Biegler (#3828)
+  - GDPopt: Improvements to LDSDA (#3830)
+  - observer: Add in Model observer package (#3695, #3829)
+  - Parmest: Consolidate Rooney Biegler (#3793)
+  - Parmest: Update documentation (#3791)
+  - PyROS: Update tests for Python 3.14 (#3782)
+  - PyROS: Fix `IntersectionSet` implementation (#3786)
+  - PyROS: Fix scaling typo in separation objectives (#3817)
+
+-------------------------------------------------------------------------------
+Pyomo 6.9.5   (17 Oct 2025)
+-------------------------------------------------------------------------------
+
+SIGNIFICANT CHANGE NOTICE
+
+- This will be the last release to support Python 3.9
+- This is the first release to be tested against Python 3.14
+
+CHANGELOG
+
+- General
+  - Add Python 3.14 as a supported version (#3749, #3728)
+  - New Typos Updates (#3715, #3739)
+  - Modernization: Convert to new implicit standard for classes (#3654)
+  - Fix boolean conversion in DeferredImportIndicator class (#3746)
+- Core
+  - LinearExpression should return tuples instead of lists (#3751)
+  - Initializing Config containers shouldn't mark as "user set" (#3722)
+- Documentation
+  - Update URLs in source code (#3755)
+- Solver Interfaces
+  - Set Gurobi LogToConsole instead of OutputFlag to handle "tee" (#3716)
+  - New KNITRO direct solver interface (#3707)
+  - Add Gurobi direct support for MINLP (#3745)
+  - Bugfix: IPOPT log parser and no objective case (#3738)
+  - Add test to ensure `Results` object is populated fully (#3709)
+  - Mark that AMPL Gurobi 12.0.3 returns incorrect dual values (#3750)
+  - Gams gurobi valid solvers fix (#3714)
+  - Validate new api_version() method, implement on wrapper classes (#3717)
+- Testing
+  - Update to pypy3.11 and ignore pint (#3756)
+- Contributed Packages
+  - alternative_solutions: Gurobi solution pool tweak (#3726)
+  - DoE: Finish GreyBox / ME-opt Hessian (#3740, #3727)
+  - DoE: Measurement error convention correction (#3723)
+  - piecewise: Fix deprecation in NonlinearToPWL/LinearRepnVisitor (#3752)
+  - PyROS: Restructure and add tutorial to online documentation (#3733)
+  - PyROS: Modify the logging system (#3732)
+  - PyROS: Ensure support for problems With no Vars/uncertain Params (#3720)
+
+-------------------------------------------------------------------------------
+Pyomo 6.9.4   (27 Aug 2025)
+-------------------------------------------------------------------------------
+
+- General
+  - Cleanup `collections` module (#3708)
+  - Work around environments where `IntEnum.__doc__` is None (#3711)
+  - Standardize 'multiprocessing' deferred import (#3702)
+  - Resolve `capture_output(capture_fd=True)` deadlock on Windows (#3679)
+- Core
+  - Bugfix: standard form with fixed variables (#3704)
+- DAE
+  - Fix simulator bug (#3692)
+- Solver Interfaces
+  - Add reporting of SCIP node count to solver results (#3691)
+  - Create API version attribute for different solver generations (#3699)
+  - Ipopt_v2: update options processing (#3693)
+  - Expanded LegacySolverWrapper fixes (#3700)
+- Testing
+  - Update GAMS download to new "latest" link (#3706)
+  - New TPL cache version on GHA workflows (#3705)
+- Contributed Packages
+  - benders: Added support for HiGHS solver (#3686)
+  - DoE: Add grey box objectives (#3606)
+  - Parmest: Correct two very old test skips (#3697)
+  - Parmest: Extend capability for weighted SSE objective (#3535)
+  - PyROS: Modify two solver tests (#3694)
+  - sensitivity_toolbox: Sensitivity calculation for named expressions (#3685)
+
+-------------------------------------------------------------------------------
 Pyomo 6.9.3   (6 Aug 2025)
 -------------------------------------------------------------------------------
 
@@ -1413,7 +1536,7 @@ ADVANCE CHANGE NOTICE:
 - DAE Updates
   - Extend flattener to allow multiple sets (#1768)
 - GDP Updates
-  - Fix subproblem initialiations in gdp.cuttingplane (#1780)
+  - Fix subproblem initializations in gdp.cuttingplane (#1780)
 - Testing
   - Fix Jenkins test script (#1771)
   - Fix GHA tests to work with PyMySQL 1.0.0 (#1777)

@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 from pyomo.common.collections import ComponentSet
 from pyomo.common.numeric_types import native_numeric_types
@@ -23,10 +21,10 @@ from pyomo.repn.util import (
     ExitNodeDispatcher,
     ExprType,
     initialize_exit_node_dispatcher,
+    check_constant,
 )
 import pyomo.repn.linear as linear
 import pyomo.repn.quadratic as quadratic
-
 
 _FIXED = ExprType.FIXED
 _CONSTANT = ExprType.CONSTANT
@@ -34,7 +32,7 @@ _LINEAR = ExprType.LINEAR
 _GENERAL = ExprType.GENERAL
 
 
-class ParameterizedRepnMixin(object):
+class ParameterizedRepnMixin:
     @staticmethod
     def constant_flag(val):
         if val.__class__ in native_numeric_types:
@@ -88,7 +86,7 @@ class ParameterizedBeforeChildDispatcher(linear.LinearBeforeChildDispatcher):
                 # We aren't treating this Var as a Var for the purposes of this walker
                 return False, (_FIXED, child)
             if child.fixed:
-                return False, (_CONSTANT, visitor.check_constant(child.value, child))
+                return False, (_CONSTANT, check_constant(child.value, child, visitor))
             # This is a normal situation
             visitor.var_recorder.add(child)
         ans = visitor.Result()

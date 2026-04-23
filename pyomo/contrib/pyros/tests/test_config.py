@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 """
 Test objects for construction of PyROS ConfigDict.
@@ -723,7 +721,7 @@ class TestPyROSConfig(unittest.TestCase):
         exc_str = (
             # contents of the error message are version dependent
             "(cannot convert dictionary update sequence"
-            "|'int' object is not iterable)"
+            "|object is not iterable)"
         )
         with self.assertRaisesRegex(ValueError, exc_str):
             config.subproblem_format_options = [1, 2, 3]

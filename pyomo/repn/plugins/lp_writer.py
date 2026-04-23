@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import logging
 from io import StringIO
@@ -61,7 +59,7 @@ neg_inf = float('-inf')
 
 
 # TODO: make a proper base class
-class LPWriterInfo(object):
+class LPWriterInfo:
     """Return type for LPWriter.write()
 
     Attributes
@@ -81,7 +79,7 @@ class LPWriterInfo(object):
     'cpxlp_v2', 'Generate the corresponding CPLEX LP file (version 2).'
 )
 @WriterFactory.register('lp_v2', 'Generate the corresponding LP file (version 2).')
-class LPWriter(object):
+class LPWriter:
     CONFIG = ConfigBlock('lpwriter')
     CONFIG.declare(
         'show_section_timing',
@@ -242,7 +240,7 @@ class LPWriter(object):
             return _LPWriter_impl(ostream, config).write(model)
 
 
-class _LPWriter_impl(object):
+class _LPWriter_impl:
     def __init__(self, ostream, config):
         self.ostream = ostream
         self.config = config

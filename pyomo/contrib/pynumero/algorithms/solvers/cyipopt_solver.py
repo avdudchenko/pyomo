@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineerinkg
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 """
 The cyipopt_solver module includes two solvers that call CyIpopt. One,
 CyIpoptSolver, is a solver that operates on a CyIpoptProblemInterface
@@ -15,6 +13,7 @@ CyIpoptSolver, is a solver that operates on a CyIpoptProblemInterface
 Pyomo model.
 
 """
+
 import io
 import sys
 import logging
@@ -180,7 +179,7 @@ _ipopt_term_cond = {
 }
 
 
-class CyIpoptSolver(object):
+class CyIpoptSolver:
     def __init__(self, problem_interface, options=None):
         """Create an instance of the CyIpoptSolver. You must
         provide a problem_interface that corresponds to
@@ -243,7 +242,7 @@ def _numpy_vector(val):
     return ans
 
 
-class PyomoCyIpoptSolver(object):
+class PyomoCyIpoptSolver:
     CONFIG = ConfigBlock("cyipopt")
     CONFIG.declare(
         "tee",
@@ -351,6 +350,7 @@ class PyomoCyIpoptSolver(object):
             intermediate_callback=config.intermediate_callback,
             halt_on_evaluation_error=config.halt_on_evaluation_error,
         )
+
         ng = len(problem.g_lb())
         nx = len(problem.x_lb())
         cyipopt_solver = problem
@@ -371,6 +371,21 @@ class PyomoCyIpoptSolver(object):
                 # Fall back to pre-1.0.0 API
                 set_scaling = cyipopt_solver.setProblemScaling
             set_scaling(obj_scaling, x_scaling, g_scaling)
+
+        # has_hessian_support only exists for PyomoNLPWithGreyBoxBlocks, but if
+        # we have grey box blocks, we know our NLP is of this class.
+        if grey_box_blocks and not nlp.has_hessian_support():
+            # Note that `config` is a copy of the instance-level self.config so
+            # we don't have to reset the option after the solve.
+            hessian_approx = config.options.get("hessian_approximation", None)
+            if hessian_approx is not None and hessian_approx.value() == "exact":
+                logger.warning(
+                    "'hessian_approximation' option is set to 'exact', but at"
+                    " least one grey box model does not support Hessians."
+                    " Overriding this option with"
+                    " hessian_approximation='limited-memory'."
+                )
+            config.options["hessian_approximation"] = "limited-memory"
 
         # add options
         try:

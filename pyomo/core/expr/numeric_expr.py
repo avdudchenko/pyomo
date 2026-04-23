@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import collections
 import logging
@@ -50,7 +48,6 @@ from pyomo.core.expr.base import ExpressionBase, NPV_Mixin, visitor
 # modules is fully declared before importing into the other, we will
 # have BOTH modules assume that the other module has NOT been declared.
 import pyomo.core.expr.relational_expr as relational_expr
-
 
 _ndarray, _ = attempt_import('pyomo.core.expr.ndarray')
 
@@ -162,7 +159,7 @@ def enable_expression_optimizations(zero=None, one=None):
             _zero_one_optimizations.discard(key)
 
 
-class mutable_expression(object):
+class mutable_expression:
     """Context manager for mutable sums.
 
     This context manager is used to compute a sum while treating the
@@ -317,17 +314,14 @@ class NumericValue(PyomoObject):
         # __bool__ is not defined.
         if self.is_constant():
             return bool(self())
-        raise PyomoException(
-            """
+        raise PyomoException("""
 Cannot convert non-constant Pyomo numeric value (%s) to bool.
 This error is usually caused by using a Var, unit, or mutable Param in a
 Boolean context such as an "if" statement. For example,
     >>> m.x = Var()
     >>> if not m.x:
     ...     pass
-would cause this exception.""".strip()
-            % (self,)
-        )
+would cause this exception.""".strip() % (self,))
 
     def __float__(self):
         """Coerce the value to a floating point
@@ -342,16 +336,13 @@ would cause this exception.""".strip()
         """
         if self.is_constant():
             return float(self())
-        raise TypeError(
-            """
+        raise TypeError("""
 Implicit conversion of Pyomo numeric value (%s) to float is disabled.
 This error is often the result of using Pyomo components as arguments to
 one of the Python built-in math module functions when defining
 expressions. Avoid this error by using Pyomo-provided math functions or
 explicitly resolving the numeric value using the Pyomo value() function.
-""".strip()
-            % (self,)
-        )
+""".strip() % (self,))
 
     def __int__(self):
         """Coerce the value to an integer
@@ -366,16 +357,13 @@ explicitly resolving the numeric value using the Pyomo value() function.
         """
         if self.is_constant():
             return int(self())
-        raise TypeError(
-            """
+        raise TypeError("""
 Implicit conversion of Pyomo numeric value (%s) to int is disabled.
 This error is often the result of using Pyomo components as arguments to
 one of the Python built-in math module functions when defining
 expressions. Avoid this error by using Pyomo-provided math functions or
 explicitly resolving the numeric value using the Pyomo value() function.
-""".strip()
-            % (self,)
-        )
+""".strip() % (self,))
 
     def __lt__(self, other):
         """
@@ -1206,7 +1194,12 @@ class SumExpression(NumericExpression):
         return self.__class__(_args)
 
     def _apply_operation(self, result):
-        return sum(result)
+        # Avoid 0 being added to summations by specifying the start
+        if result:
+            _iter = iter(result)
+            return sum(_iter, start=next(_iter))
+        else:
+            return 0
 
     def _compute_polynomial_degree(self, result):
         # NB: We can't use max() here because None (non-polynomial)
@@ -1333,6 +1326,8 @@ class LinearExpression(SumExpression):
                 assert arg.is_potentially_variable()
                 coef.append(1)
                 var.append(arg)
+        coef = tuple(coef)
+        var = tuple(var)
         LinearExpression._cache = (self, const, coef, var)
 
     @property

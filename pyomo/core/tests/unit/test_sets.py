@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 #
 # Unit Tests for Set() Objects
 #
@@ -3491,7 +3489,7 @@ class TestSetErrors(PyomoModel):
         #    pass
         self.assertTrue(Integers.issubset(Reals))
         # Prior to the set rewrite, SetOperators (like issubset) between
-        # sets with differing dimentionality generated an error.
+        # sets with differing dimensionality generated an error.
         # Because of vagueness around the concept of the UnknownSetDimen
         # and dimen=None, we no longer generate those errors.  This
         # means that two empty sets (a and b) with differing

@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import abc
 import enum
@@ -16,6 +14,7 @@ import re
 import weakref
 
 from typing import (
+    TYPE_CHECKING,
     Sequence,
     Dict,
     Optional,
@@ -379,7 +378,7 @@ class SolutionLoader(SolutionLoaderBase):
         return rc
 
 
-class Results(object):
+class Results:
     """
     Base class for all APPSI solver results
 
@@ -688,7 +687,7 @@ class Solver(abc.ABC):
         available: Solver.Availability
             An enum that indicates "how available" the solver is.
             Note that the enum can be cast to bool, which will
-            be True if the solver is runable at all and False
+            be True if the solver is runnable at all and False
             otherwise.
         """
         pass
@@ -1524,7 +1523,7 @@ legacy_solution_status_map = {
 }
 
 
-class LegacySolverInterface(object):
+class LegacySolverInterface:
     def solve(
         self,
         model: BlockData,
@@ -1602,10 +1601,8 @@ class LegacySolverInterface(object):
         symbol_map.bySymbol = dict(self.symbol_map.bySymbol)
         symbol_map.aliases = dict(self.symbol_map.aliases)
         symbol_map.default_labeler = self.symbol_map.default_labeler
-        model.solutions.add_symbol_map(symbol_map)
-        legacy_results._smap_id = id(symbol_map)
+        legacy_results._smap_id = None
 
-        delete_legacy_soln = True
         if load_solutions:
             if hasattr(model, 'dual') and model.dual.import_enabled():
                 for c, val in results.solution_loader.get_duals().items():
@@ -1617,7 +1614,6 @@ class LegacySolverInterface(object):
                 for v, val in results.solution_loader.get_reduced_costs().items():
                     model.rc[v] = val
         elif results.best_feasible_objective is not None:
-            delete_legacy_soln = False
             for v, val in results.solution_loader.get_primals().items():
                 legacy_soln.variable[symbol_map.getSymbol(v)] = {'Value': val}
             if hasattr(model, 'dual') and model.dual.import_enabled():
@@ -1632,9 +1628,9 @@ class LegacySolverInterface(object):
                 for v, val in results.solution_loader.get_reduced_costs().items():
                     legacy_soln.variable['Rc'] = val
 
-        legacy_results.solution.insert(legacy_soln)
-        if delete_legacy_soln:
-            legacy_results.solution.delete(0)
+            legacy_results.solution.insert(legacy_soln)
+            legacy_results._smap = symbol_map
+            legacy_results._smap_id = id(symbol_map)
 
         self.config = original_config
         self.options = original_options
@@ -1686,6 +1682,18 @@ class LegacySolverInterface(object):
     def __exit__(self, t, v, traceback):
         pass
 
+    @classmethod
+    def api_version(self):
+        """
+        Return the public API supported by this interface.
+
+        Returns
+        -------
+        ~pyomo.common.enums.SolverAPIVersion
+            A solver API enum object
+        """
+        return SolverAPIVersion.V1
+
 
 class SolverFactoryClass(Factory):
     def register(self, name, doc=None):
@@ -1701,6 +1709,10 @@ class SolverFactoryClass(Factory):
             return cls
 
         return decorator
+
+    if TYPE_CHECKING:
+        # NOTE: `Factory.__call__` can return None, but for the common case
+        def __call__(self, name, **kwds) -> Solver: ...
 
 
 SolverFactory = SolverFactoryClass()

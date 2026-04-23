@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 #
 
 import pyomo.common.unittest as unittest
@@ -17,6 +15,7 @@ import logging
 import math
 import os
 import re
+import sys
 
 import pyomo.repn.util as repn_util
 import pyomo.repn.plugins.nl_writer as nl_writer
@@ -51,7 +50,7 @@ import pyomo.environ as pyo
 nan = float('nan')
 
 
-class INFO(object):
+class INFO:
     def __init__(self, symbolic=False):
         self.subexpression_cache = {}
         self.external_functions = {}
@@ -452,10 +451,14 @@ class Test_AMPLRepnVisitor(unittest.TestCase):
         info = INFO()
         with LoggingIntercept() as LOG:
             repn = info.visitor.walk_expression((log(m.p), None, None, 1))
+        if sys.version_info[:2] < (3, 14):
+            msg = 'math domain error'
+        else:
+            msg = 'expected a positive input'
         self.assertEqual(
             LOG.getvalue(),
             "Exception encountered evaluating expression 'log(0)'\n"
-            "\tmessage: math domain error\n"
+            f"\tmessage: {msg}\n"
             "\texpression: log(p)\n",
         )
         self.assertEqual(repn.nl, None)

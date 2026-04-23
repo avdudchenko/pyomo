@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import os
 
@@ -32,7 +30,7 @@ class TestSolverBase(unittest.TestCase):
             'version',
         ]
         method_list = [
-            method for method in dir(base.SolverBase) if method.startswith('_') is False
+            method for method in dir(base.SolverBase) if not method.startswith('_')
         ]
         self.assertEqual(sorted(expected_list), sorted(method_list))
 
@@ -74,15 +72,11 @@ class TestPersistentSolverBase(unittest.TestCase):
             '_load_vars',
             'add_block',
             'add_constraints',
-            'add_parameters',
-            'add_variables',
             'api_version',
             'available',
             'is_persistent',
             'remove_block',
             'remove_constraints',
-            'remove_parameters',
-            'remove_variables',
             'set_instance',
             'set_objective',
             'solve',
@@ -93,7 +87,7 @@ class TestPersistentSolverBase(unittest.TestCase):
         method_list = [
             method
             for method in dir(base.PersistentSolverBase)
-            if (method.startswith('__') or method.startswith('_abc')) is False
+            if not (method.startswith('__') or method.startswith('_abc'))
         ]
         self.assertEqual(sorted(expected_list), sorted(method_list))
 
@@ -104,17 +98,9 @@ class TestPersistentSolverBase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.assertEqual(instance.set_instance(None), None)
         with self.assertRaises(NotImplementedError):
-            self.assertEqual(instance.add_variables(None), None)
-        with self.assertRaises(NotImplementedError):
-            self.assertEqual(instance.add_parameters(None), None)
-        with self.assertRaises(NotImplementedError):
             self.assertEqual(instance.add_constraints(None), None)
         with self.assertRaises(NotImplementedError):
             self.assertEqual(instance.add_block(None), None)
-        with self.assertRaises(NotImplementedError):
-            self.assertEqual(instance.remove_variables(None), None)
-        with self.assertRaises(NotImplementedError):
-            self.assertEqual(instance.remove_parameters(None), None)
         with self.assertRaises(NotImplementedError):
             self.assertEqual(instance.remove_constraints(None), None)
         with self.assertRaises(NotImplementedError):
@@ -140,16 +126,19 @@ class TestPersistentSolverBase(unittest.TestCase):
 class TestLegacySolverWrapper(unittest.TestCase):
     def test_class_method_list(self):
         expected_list = [
+            'api_version',
             'available',
             'config_block',
+            'default_variable_value',
             'license_is_valid',
             'set_options',
             'solve',
+            'warm_start_capable',
         ]
         method_list = [
             method
             for method in dir(base.LegacySolverWrapper)
-            if method.startswith('_') is False
+            if not method.startswith('_')
         ]
         self.assertEqual(sorted(expected_list), sorted(method_list))
 

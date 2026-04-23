@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import sys
 import logging
@@ -166,7 +164,7 @@ class _GeneralObjectiveData(metaclass=RenamedClass):
     __renamed__version__ = '6.7.2'
 
 
-class TemplateDataMixin(object):
+class TemplateDataMixin:
     __slots__ = ()
 
     @property
@@ -393,7 +391,7 @@ class Objective(ActiveIndexedComponent):
                 ("Index", self._index_set if self.is_indexed() else None),
                 ("Active", self.active),
             ],
-            self._data.items(),
+            self.items,
             ("Active", "Sense", "Expression"),
             lambda k, v: [v.active, v.sense, v.expr],
         )
@@ -562,7 +560,7 @@ class ObjectiveList(IndexedObjective):
     an index value is not specified.
     """
 
-    class End(object):
+    class End:
         pass
 
     def __init__(self, **kwargs):

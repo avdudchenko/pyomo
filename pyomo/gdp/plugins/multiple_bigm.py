@@ -1,13 +1,11 @@
-#  ___________________________________________________________________________
+# ____________________________________________________________________________________
 #
-#  Pyomo: Python Optimization Modeling Objects
-#  Copyright (c) 2008-2025
-#  National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
-#  rights in this software.
-#  This software is distributed under the 3-clause BSD License.
-#  ___________________________________________________________________________
+# Pyomo: Python Optimization Modeling Objects
+# Copyright (c) 2008-2026 National Technology and Engineering Solutions of Sandia, LLC
+# Under the terms of Contract DE-NA0003525 with National Technology and Engineering
+# Solutions of Sandia, LLC, the U.S. Government retains certain rights in this
+# software.  This software is distributed under the 3-clause BSD License.
+# ____________________________________________________________________________________
 
 import itertools
 import logging
@@ -27,6 +25,7 @@ from pyomo.common.config import (
 from pyomo.common.gc_manager import PauseGC
 from pyomo.common.modeling import unique_component_name
 from pyomo.common.dependencies import dill, dill_available, multiprocessing
+from pyomo.common.enums import SolverAPIVersion
 
 from pyomo.core import (
     Block,
@@ -54,12 +53,9 @@ from pyomo.gdp.plugins.bigm_mixin import (
 from pyomo.gdp.plugins.gdp_to_mip_transformation import GDP_to_MIP_Transformation
 from pyomo.gdp.util import _to_dict
 from pyomo.opt import SolverFactory, TerminationCondition
-from pyomo.contrib.solver.common.base import SolverBase as NewSolverBase
-from pyomo.contrib.solver.common.base import LegacySolverWrapper
 from pyomo.repn import generate_standard_repn
 
 from weakref import ref as weakref_ref
-
 
 logger = logging.getLogger('pyomo.gdp.mbigm')
 
@@ -92,11 +88,8 @@ def Solver(val):
         return SolverFactory(val)
     if not hasattr(val, 'solve'):
         raise ValueError("Expected a string or solver object (with solve() method)")
-    if isinstance(val, NewSolverBase) and not isinstance(val, LegacySolverWrapper):
-        raise ValueError(
-            "Please pass an old-style solver object, using the "
-            "LegacySolverWrapper mechanism if necessary."
-        )
+    if not hasattr(val, 'api_version') or val.api_version() is not SolverAPIVersion.V1:
+        raise ValueError("Solver object should support the V1 solver API version")
     return val
 
 
@@ -466,8 +459,8 @@ class MultipleBigMTransformation(GDP_to_MIP_Transformation, _BigM_MixIn):
         if jobs:
             jobs_by_name = [
                 (
-                    constraint.getname(fully_qualified=True),
-                    other_disjunct.getname(fully_qualified=True),
+                    constraint.getname(fully_qualified=True, relative_to=instance),
+                    other_disjunct.getname(fully_qualified=True, relative_to=instance),
                     unsuccessful_solve_msg,
                     is_upper,
                 )
@@ -599,12 +592,12 @@ class MultipleBigMTransformation(GDP_to_MIP_Transformation, _BigM_MixIn):
                     continue
                 # First check args
                 if (constraint, other_disjunct) in arg_Ms:
-                    (lower_M, upper_M) = _convert_M_to_tuple(
+                    lower_M, upper_M = _convert_M_to_tuple(
                         arg_Ms[constraint, other_disjunct], constraint, other_disjunct
                     )
                     self.used_args[constraint, other_disjunct] = (lower_M, upper_M)
                 else:
-                    (lower_M, upper_M) = (None, None)
+                    lower_M, upper_M = (None, None)
                 unsuccessful_solve_msg = (
                     "Unsuccessful solve to calculate M value to "
                     "relax constraint '%s' on Disjunct '%s' when "

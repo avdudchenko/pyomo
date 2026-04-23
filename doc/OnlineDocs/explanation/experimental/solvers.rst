@@ -54,6 +54,12 @@ with existing interfaces).
    * - HiGHS
      - ``highs``
      - ``highs``
+   * - KNITRO
+     - ``knitro_direct``
+     - ``knitro_direct``
+   * - GAMS
+     - ``gams``
+     - ``gams_v2``
 
 Using the new interfaces through the legacy interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -258,9 +264,9 @@ solver's ``writer_config`` configuration option (see the
    file_determinism: FileDeterminism.ORDERED
    symbolic_solver_labels: false
    scale_model: true
-   export_nonlinear_variables: None
-   row_order: None
-   column_order: None
+   export_nonlinear_variables: null
+   row_order: null
+   column_order: null
    export_defined_variables: true
    linear_presolve: true
 
